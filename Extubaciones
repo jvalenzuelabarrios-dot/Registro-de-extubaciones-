@@ -1,0 +1,131 @@
+import streamlit as st
+import pandas as pd
+import datetime
+
+# Configuración inicial de la página
+st.set_page_config(page_title="Registro de Extubaciones UPC", layout="wide")
+
+st.title("Registro Clínico de Extubaciones")
+st.subheader("UPC - Hospital Dr. Ernesto Torres Galdames")
+
+# Definir todas las columnas basadas en tu formulario
+columnas = [
+    "Fecha de extubación", "Nombre del EXTUBADOR", "Nombre Paciente", "Sexo", "Edad",
+    "DG paciente", "Días UCI", "Días VM", "Días Weaning",
+    "Evaluación Neurológica (GCS)", "Evaluación Neurológica (S5Q)",
+    "PVE Tubo T", "PVE Cpap/ps", "Cuff Leak Test (Tipo)", "Cuff Leak Test (Resultado)",
+    "RSBI", "NIF", "P 0.1", "Δ Pocc", "Pmusc", "Tos", "PEF Tusigeno",
+    "Realiza Ecografia Diafragmática", "Excursion Diafragmatica",
+    "Dispositivo de salida", "Estridor", "Nebulización", "Resultado Final"
+]
+
+# Inicializar la base de datos temporal
+if 'data' not in st.session_state:
+    st.session_state.data = pd.DataFrame(columns=columnas)
+
+# --- SECCIÓN 1: FORMULARIO DE INGRESO ---
+with st.form("registro_extubacion", clear_on_submit=True):
+    
+    st.markdown("### 1. Datos Generales")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        fecha = st.date_input("Fecha de extubación", datetime.date.today())
+        extubador = st.text_input("Nombre del EXTUBADOR")
+    with col2:
+        paciente = st.text_input("Nombre Paciente (Usa iniciales para privacidad)")
+        edad = st.number_input("Edad", min_value=0, max_value=120, step=1)
+    with col3:
+        sexo = st.selectbox("Sexo", ["Seleccionar...", "Masculino", "Femenino"])
+        dg = st.selectbox("DG paciente", ["Seleccionar...", "Neurocrítico", "Quirurgico", "Respiratorio", "Coronario", "Otros"])
+
+    st.markdown("### 2. Tiempos de Estadía")
+    col4, col5, col6 = st.columns(3)
+    with col4:
+        dias_uci = st.selectbox("Días UCI", ["Seleccionar...", "1 - 5 días", "6 - 15 días", "> a 15 días"])
+    with col5:
+        dias_vm = st.selectbox("Días VM", ["Seleccionar...", "1 - 5 días", "6 - 15 días", "> a 15 días"])
+    with col6:
+        dias_weaning = st.selectbox("Días Weaning", ["Seleccionar...", "1 - 2 días", "3 - 5 días", "Weaning Prolongado (+ 5 días)"])
+
+    st.markdown("### 3. Evaluación Pre-Extubación")
+    col7, col8, col9, col10 = st.columns(4)
+    with col7:
+        gcs = st.selectbox("Ev. Neurológica (GCS)", ["Seleccionar...", "11 - 9 pts.", "< a 8 pts."])
+        s5q = st.selectbox("Ev. Neurológica (S5Q)", ["Seleccionar...", "4 - 5 pts.", "3 pts.", "< a 2 pts."])
+        tubo_t = st.selectbox("PVE Tubo T", ["Seleccionar...", "Tubo T MENOR 1hr", "Tubo T MAYOR 1hr", "Ninguna de las anteriores"])
+        cpap = st.selectbox("PVE Cpap/ps", ["Seleccionar...", "Cpap/ps 6/6", "Cpap/ps 5/5", "Cpap/ps 5/3", "Cpap/ps 3/0"])
+    with col8:
+        cuff_tipo = st.selectbox("Cuff Leak Test", ["Seleccionar...", "Cualitativo", "Cuantitativo"])
+        cuff_res = st.selectbox("Cuff Leak Test (Resultado)", ["Seleccionar...", "Positivo", "Negativo"])
+        rsbi = st.selectbox("RSBI", ["Seleccionar...", "Menor a 50", "50 - 100", "Mayor 100"])
+        nif = st.selectbox("NIF", ["Seleccionar...", "0 y -10", "-11 y -20", "Mayor a -25", "No aplica"])
+    with col9:
+        p01 = st.selectbox("P 0.1", ["Seleccionar...", "Mayor a 2.0", "Menor a 2.0", "No aplica"])
+        pocc = st.selectbox("Δ Pocc", ["Seleccionar...", "5-10", "10-15", "15 o más", "No aplica"])
+        pmusc = st.selectbox("Pmusc", ["Seleccionar...", "Menor a 5", "5 - 10", "Mayor a 10", "No aplica"])
+    with col10:
+        tos = st.selectbox("Tos", ["Seleccionar...", "Efectiva", "Poco efectiva", "Ausente"])
+        pef = st.text_input("PEF Tusigeno")
+        eco_diaf = st.selectbox("Realiza Ecografia Diafragmática", ["Seleccionar...", "Sí", "No"])
+        excursion = st.selectbox("Excursion Diafragmatica", ["Seleccionar...", "Mayor a 1.1 cms", "Menos a 1.1 cms", "No aplica"])
+
+    st.markdown("### 4. Salida y Evolución")
+    col11, col12, col13, col14 = st.columns(4)
+    with col11:
+        dispositivo = st.selectbox("Dispositivo de salida", ["Seleccionar...", "VNI", "Cnaf", "MV", "Naricera", "Ambiental"])
+    with col12:
+        estridor = st.selectbox("Estridor", ["Seleccionar...", "Sí", "No"])
+    with col13:
+        nebulizacion = st.selectbox("Nebulización", ["Seleccionar...", "Sí (estridor)", "Sí (profiláctica)", "No"])
+    with col14:
+        resultado = st.selectbox("Resultado Final (Evolución)", ["Seleccionar...", "Éxito (>48h)", "Fracaso (Reintubación)"])
+
+    submit = st.form_submit_button("Guardar Registro")
+
+    if submit:
+        # Almacenar en diccionario
+        nuevo_registro = pd.DataFrame([{
+            "Fecha de extubación": fecha, "Nombre del EXTUBADOR": extubador, "Nombre Paciente": paciente,
+            "Sexo": sexo, "Edad": edad, "DG paciente": dg, "Días UCI": dias_uci, "Días VM": dias_vm,
+            "Días Weaning": dias_weaning, "Evaluación Neurológica (GCS)": gcs,
+            "Evaluación Neurológica (S5Q)": s5q, "PVE Tubo T": tubo_t, "PVE Cpap/ps": cpap,
+            "Cuff Leak Test (Tipo)": cuff_tipo, "Cuff Leak Test (Resultado)": cuff_res,
+            "RSBI": rsbi, "NIF": nif, "P 0.1": p01, "Δ Pocc": pocc, "Pmusc": pmusc,
+            "Tos": tos, "PEF Tusigeno": pef, "Realiza Ecografia Diafragmática": eco_diaf,
+            "Excursion Diafragmatica": excursion, "Dispositivo de salida": dispositivo,
+            "Estridor": estridor, "Nebulización": nebulizacion, "Resultado Final": resultado
+        }])
+        st.session_state.data = pd.concat([st.session_state.data, nuevo_registro], ignore_index=True)
+        st.success("✅ ¡Registro clínico guardado correctamente!")
+
+# --- SECCIÓN 2: DASHBOARD Y ESTADÍSTICAS ---
+st.write("---")
+st.write("### Estadísticas Generales de la Unidad")
+
+if not st.session_state.data.empty and len(st.session_state.data) > 0:
+    df = st.session_state.data
+    
+    col_chart1, col_chart2, col_chart3 = st.columns(3)
+    
+    with col_chart1:
+        st.write("**Dispositivos de Salida Utilizados**")
+        df_disp = df[df["Dispositivo de salida"] != "Seleccionar..."]
+        if not df_disp.empty:
+            st.bar_chart(df_disp["Dispositivo de salida"].value_counts())
+        
+    with col_chart2:
+        st.write("**Diagnósticos (DG Paciente)**")
+        df_dg = df[df["DG paciente"] != "Seleccionar..."]
+        if not df_dg.empty:
+            st.bar_chart(df_dg["DG paciente"].value_counts())
+            
+    with col_chart3:
+        st.write("**Tasa de Éxito vs Fracaso**")
+        df_resultado = df[df["Resultado Final"] != "Seleccionar..."]
+        if not df_resultado.empty:
+            st.bar_chart(df_resultado["Resultado Final"].value_counts())
+            
+    st.write("**Base de Datos Completa (Puedes copiar y pegar en Excel)**")
+    st.dataframe(df)
+else:
+    st.info("Aún no hay registros suficientes. Los gráficos se generarán automáticamente cuando ingreses el primer paciente.")
